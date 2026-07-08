@@ -1,51 +1,46 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { marked } from 'marked'
-import * as api from '@/api'
+import { useBriefStore } from '@/stores/briefStore'
 
 const router = useRouter()
-const content = ref('')
-const loading = ref(true)
-const error = ref(false)
+const brief  = useBriefStore()
 
-// 配置 marked：链接在新标签打开
-marked.use({ renderer: { link({ href, text }) { return `<a href="${href}" target="_blank" rel="noopener">${text}</a>` } } })
-
-const html = ref('')
-
-onMounted(async () => {
-  try {
-    const res = await api.getTodayBrief()
-    content.value = res.content
-    html.value = await marked(res.content)
-  } catch {
-    error.value = true
-  } finally {
-    loading.value = false
-  }
-})
+// 首次进入时加载（已缓存则直接用，不重复请求）
+onMounted(() => brief.load())
 </script>
 
 <template>
   <div class="brief-page">
     <div class="page-header">
-<!--      <h2 style="margin: 0">📅 今日简报</h2>-->
       <n-button size="small" @click="router.push('/articles')">查看全部文章 →</n-button>
+
+      <!-- 右上角手动刷新按钮 -->
+      <n-button
+        size="small"
+        :loading="brief.loading"
+        :disabled="brief.loading"
+        @click="brief.refresh()"
+      >
+        🔄 刷新简报
+      </n-button>
     </div>
 
-    <n-spin :show="loading" style="margin-top: 24px">
-      <n-alert v-if="error" type="error" style="margin-top: 24px">
+    <n-spin :show="brief.loading" style="margin-top: 24px">
+      <n-alert v-if="brief.error" type="error" style="margin-top: 24px">
         简报加载失败，请检查后端服务是否运行。
       </n-alert>
 
-      <div v-else-if="!loading" class="markdown-body" v-html="html" />
+      <div v-else-if="!brief.loading && brief.loaded" class="markdown-body" v-html="brief.html" />
+
+      <!-- 首次未加载且无错误时的占位（理论上 onMounted 已触发 load） -->
+      <n-empty v-else-if="!brief.loading && !brief.loaded" description="暂无简报内容" style="margin-top: 40px" />
     </n-spin>
   </div>
 </template>
 
 <style scoped>
-.brief-page { max-width: 800px; margin: 0 auto; }
+.brief-page  { max-width: 800px; margin: 0 auto; }
 .page-header { display: flex; justify-content: space-between; align-items: center; }
 </style>
 
@@ -56,7 +51,7 @@ onMounted(async () => {
 .markdown-body h2 { font-size: 17px; margin: 24px 0 12px; padding-bottom: 6px; border-bottom: 1px solid rgba(128,128,128,0.2); }
 .markdown-body ul { padding-left: 20px; margin: 8px 0; }
 .markdown-body li { margin: 6px 0; }
-.markdown-body a { color: #2080f0; text-decoration: none; }
+.markdown-body a  { color: #2080f0; text-decoration: none; }
 .markdown-body a:hover { text-decoration: underline; }
 .markdown-body blockquote { margin: 8px 0; padding: 6px 14px; border-left: 3px solid #2080f0; color: #888; background: rgba(32,128,240,0.04); border-radius: 2px; }
 .markdown-body strong { font-weight: 600; }

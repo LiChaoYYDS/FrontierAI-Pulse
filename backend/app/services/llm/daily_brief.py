@@ -62,6 +62,7 @@ async def _section_for_interest(interest: str, articles: list[Article]) -> str:
 
 async def generate_daily_brief(db: AsyncSession, user_interests: list[str]) -> str:
     """按用户兴趣方向分块生成今日简报，每个方向展示新发现/进展/趋势。"""
+    import asyncio
 
     since = datetime.now(timezone.utc) - timedelta(hours=24)
     articles = (await db.execute(
@@ -74,27 +75,29 @@ async def generate_daily_brief(db: AsyncSession, user_interests: list[str]) -> s
     today = datetime.now().strftime("%Y年%m月%d日")
     lines = [f"# 📅 今日简报  ·  {today}\n", f"> 今日共新增 **{len(articles)}** 篇资讯\n"]
 
-    sections_generated = 0
-
-    # 按用户兴趣逐方向处理
+    # ── 兴趣方向过滤（纯CPU，同步即可）────────────────────────────────────────
+    matched_interests: list[tuple[str, list[Article]]] = []
     if user_interests:
         for interest in user_interests:
             kws = _keywords(interest)
             matched = [a for a in articles if _match(a, kws)]
-            if not matched:
-                continue
-            section = await _section_for_interest(interest, matched)
-            lines.append(section)
-            sections_generated += 1
+            if matched:
+                matched_interests.append((interest, matched))
 
-    # 无匹配或无兴趣：显示全量热点
-    if sections_generated == 0:
+    if matched_interests:
+        # 各兴趣方向的 LLM 调用并行执行，整体耗时 = 最慢那一次，而非累加
+        sections = await asyncio.gather(
+            *[_section_for_interest(interest, arts) for interest, arts in matched_interests]
+        )
+        lines.extend(sections)
+    else:
+        # 无匹配或无兴趣：显示全量热点
         lines.append("## 🔥 今日热点\n")
         for a in articles[:8]:
             lines.append(f"- [{a.title}]({a.url})")
         lines.append("")
 
-    # 学习建议
+    # 学习建议（与章节并列执行可进一步提速，但语义上依赖章节内容，保持串行更合理）
     tip = await _learning_tip(articles[:8], user_interests)
     lines.append(f"## ⏰ 今日学习建议\n\n{tip}")
 

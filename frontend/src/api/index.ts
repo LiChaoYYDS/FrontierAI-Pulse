@@ -59,8 +59,9 @@ export const updateUserInterests = (interests: string[]) =>
   client.put<{ interests: string[] }>('/user/interests', { interests }).then(r => r.data)
 
 // ── Brief ─────────────────────────────────────────────────────────────────────
+// 简报需要多次 LLM 调用，单独设置 60s 超时（全局默认 15s 不够用）
 export const getTodayBrief = () =>
-  client.get<{ content: string }>('/brief/today').then(r => r.data)
+  client.get<{ content: string }>('/brief/today', { timeout: 60000 }).then(r => r.data)
 
 // ── Dashboard ─────────────────────────────────────────────────────────────────
 export const getDashboardSummary = () =>
