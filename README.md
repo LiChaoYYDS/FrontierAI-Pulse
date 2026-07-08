@@ -2,6 +2,16 @@
 
 把互联网上每天涌出的技术资讯，变成真正属于你的个人知识库。
 
+## 截图预览
+<img width="1920" height="958" alt="image" src="https://github.com/user-attachments/assets/95a269ef-4940-4dac-a8bb-1c528d25679c" />
+<img width="1920" height="958" alt="image" src="https://github.com/user-attachments/assets/8e919f93-463d-4e27-807a-960331fb17ca" />
+<img width="1920" height="958" alt="image" src="https://github.com/user-attachments/assets/d4368084-f25b-4c2d-be38-27882e66b197" />
+<img width="1920" height="958" alt="image" src="https://github.com/user-attachments/assets/1d50bdca-92d9-43df-adea-0ca808dba682" />
+<img width="1920" height="958" alt="image" src="https://github.com/user-attachments/assets/b3c43fc2-1e8f-4f63-b5b2-013d2a210426" />
+<img width="1920" height="958" alt="image" src="https://github.com/user-attachments/assets/65b81c3d-80fa-491e-98c5-1565c3aa76d1" />
+<img width="1920" height="958" alt="image" src="https://github.com/user-attachments/assets/e0aa70f7-9568-4bc1-9fe1-9e991281ca29" />
+<img width="1920" height="958" alt="image" src="https://github.com/user-attachments/assets/d54f4d13-f2a4-4a7b-9f78-9c0f50fd6647" />
+
 ---
 
 ## 🚀 项目背景与痛点
@@ -224,14 +234,7 @@ RAG 知识库问答：
 
 ---
 
-## 截图预览
-<img width="1920" height="958" alt="image" src="https://github.com/user-attachments/assets/95a269ef-4940-4dac-a8bb-1c528d25679c" />
-<img width="1920" height="958" alt="image" src="https://github.com/user-attachments/assets/8e919f93-463d-4e27-807a-960331fb17ca" />
-<img width="1920" height="958" alt="image" src="https://github.com/user-attachments/assets/d4368084-f25b-4c2d-be38-27882e66b197" />
-<img width="1920" height="958" alt="image" src="https://github.com/user-attachments/assets/1d50bdca-92d9-43df-adea-0ca808dba682" />
-<img width="1920" height="958" alt="image" src="https://github.com/user-attachments/assets/b3c43fc2-1e8f-4f63-b5b2-013d2a210426" />
-<img width="1920" height="958" alt="image" src="https://github.com/user-attachments/assets/65b81c3d-80fa-491e-98c5-1565c3aa76d1" />
-<img width="1920" height="958" alt="image" src="https://github.com/user-attachments/assets/e0aa70f7-9568-4bc1-9fe1-9e991281ca29" />
+
 
 
 
@@ -287,7 +290,7 @@ git push origin feat/your-feature-name
 📄 开源协议
 
 本项目基于 MIT License 开源。
-
+```
 MIT License
 
 Copyright (c) 2026 FrontierAI Pulse Contributors
@@ -305,3 +308,4 @@ copies or substantial portions of the Software.
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+```
