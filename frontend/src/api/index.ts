@@ -5,6 +5,7 @@ import type { DashboardSummary } from '@/types/dashboard'
 import type { KnowledgeNode, KnowledgeEdge, KnowledgeGraph } from '@/types/knowledge'
 import type { AskResponse, EmbedStatus } from '@/types/rag'
 import type { CloneTask } from '@/types/tools'
+import type { WeeklyReportData } from '@/types/report'
 
 // ── Article ───────────────────────────────────────────────────────────────────
 export const listArticles = (params: ArticleParams = {}) =>
@@ -68,7 +69,7 @@ export const getDashboardSummary = () =>
   client.get<DashboardSummary>('/dashboard/summary').then(r => r.data)
 
 export const getWeeklyReport = () =>
-  client.get<{ content: string }>('/dashboard/weekly-report', { timeout: 60000 }).then(r => r.data)
+  client.get<WeeklyReportData>('/dashboard/weekly-report', { timeout: 60000 }).then(r => r.data)
 
 // ── Search ────────────────────────────────────────────────────────────────────
 export interface SearchParams {
