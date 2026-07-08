@@ -1,6 +1,10 @@
 import client from './client.ts'
 import type { Article, ArticleParams, ArticleResponse, ArticleUpdate } from '@/types/article'
 import type { SourceItem, PresetSource } from '@/types/source'
+import type { DashboardSummary } from '@/types/dashboard'
+import type { KnowledgeNode, KnowledgeEdge, KnowledgeGraph } from '@/types/knowledge'
+import type { AskResponse, EmbedStatus } from '@/types/rag'
+import type { CloneTask } from '@/types/tools'
 
 // ── Article ───────────────────────────────────────────────────────────────────
 export const listArticles = (params: ArticleParams = {}) =>
@@ -65,15 +69,6 @@ export const getDashboardSummary = () =>
 export const getWeeklyReport = () =>
   client.get<{ content: string }>('/dashboard/weekly-report').then(r => r.data)
 
-export interface DashboardSummary {
-  total_articles: number
-  today_new: number
-  read_count: number
-  favorite_count: number
-  avg_score: number
-  active_sources: number
-}
-
 // ── Search ────────────────────────────────────────────────────────────────────
 export interface SearchParams {
   q?: string
@@ -92,10 +87,6 @@ export const searchSuggest = (q: string) =>
   client.get<{ suggestions: string[] }>('/search/suggest', { params: { q } }).then(r => r.data)
 
 // ── Knowledge ─────────────────────────────────────────────────────────────────
-export interface KnowledgeNode { id: number; name: string; type: string; value: number }
-export interface KnowledgeEdge { source: number; target: number; strength: number }
-export interface KnowledgeGraph { nodes: KnowledgeNode[]; edges: KnowledgeEdge[] }
-
 export const getKnowledgeGraph = () =>
   client.get<KnowledgeGraph>('/knowledge/graph').then(r => r.data)
 
@@ -109,24 +100,8 @@ export const getNodeArticles = (nodeId: number) =>
   client.get<import('@/types/article').Article[]>(`/knowledge/nodes/${nodeId}/articles`).then(r => r.data)
 
 // ── RAG 知识库 ────────────────────────────────────────────────────────────────
-export interface AskResponse {
-  answer: string
-  layer: string
-  layer_desc: string
-  sources: import('@/types/article').Article[]
-}
-
 export const askKnowledge = (question: string, history: { role: string; content: string }[] = []) =>
   client.post<AskResponse>('/rag/ask', { question, history }).then(r => r.data)
-
-// ── RAG: Embedding 管理 ───────────────────────────────────────────────────────
-export interface EmbedStatus {
-  total: number
-  embedded: number
-  pending: number
-  coverage_pct: number
-  job_running: boolean
-}
 
 export const triggerEmbedAll = () =>
   client.post<{ message: string }>('/rag/embed-all').then(r => r.data)
@@ -135,18 +110,11 @@ export const getEmbedStatus = () =>
   client.get<EmbedStatus>('/rag/embed-status').then(r => r.data)
 
 // ── Tools: Git Clone ──────────────────────────────────────────────────────────
-export interface CloneTask {
-  task_id?: string
-  repo?: string
-  target?: string
-  status: string
-  progress: number
-  message: string
-  error?: string
-}
-
 export const startClone = (git_url: string, username = '', token = '') =>
   client.post<CloneTask>('/tools/clone', { git_url, username, token }).then(r => r.data)
 
 export const getCloneStatus = (taskId: string) =>
   client.get<CloneTask>(`/tools/clone/${taskId}`).then(r => r.data)
+
+// ── 重新导出类型（供其他模块直接从 @/api 导入时向后兼容） ────────────────────
+export type { DashboardSummary, KnowledgeNode, KnowledgeEdge, KnowledgeGraph, AskResponse, EmbedStatus, CloneTask }

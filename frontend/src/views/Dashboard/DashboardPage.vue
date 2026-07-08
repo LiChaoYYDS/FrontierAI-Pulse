@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import * as api from '@/api'
-import type { DashboardSummary } from '@/api'
+import type { DashboardSummary } from '@/types/dashboard'
 
 const router = useRouter()
 const summary = ref<DashboardSummary | null>(null)

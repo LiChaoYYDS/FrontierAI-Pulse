@@ -1,18 +1,17 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.constants import USER_ID
 from app.models.source import Source
 from app.models.user import User
 from app.services.preset_sources import PRESET_SOURCES
 
-_USER_ID = 1
-
 
 async def get_or_create_user(db: AsyncSession) -> User:
-    user = await db.get(User, _USER_ID)
+    user = await db.get(User, USER_ID)
     if not user:
         user = User(
-            id=_USER_ID,
+            id=USER_ID,
             preferences={
                 "enabled_keys": [s.key for s in PRESET_SOURCES],
                 "interests": [],

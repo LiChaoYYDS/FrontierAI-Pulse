@@ -1,20 +1,13 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.constants import PRESET_INTERESTS
 from app.db.deps import get_db
 from app.schemas.user import PresetSourceOut, UserSourcesIn, UserInterestsIn
 from app.services.preset_sources import PRESET_SOURCES
 from app.services.user_service import get_or_create_user, sync_sources
 
 router = APIRouter(prefix="/api/user", tags=["user"])
-
-PRESET_INTERESTS = [
-    "大语言模型(LLM)", "AI Agent", "前端开发", "后端/云原生",
-    "计算机视觉(CV)", "机器学习/深度学习", "开源项目", "信息安全",
-    "移动开发", "数据库/大数据", "DevOps/SRE", "低代码/无代码",
-    "量化/金融科技", "物联网/边缘计算", "区块链/Web3", "AR/VR/元宇宙",
-    "芯片/硬件", "自动化/机器人",
-]
 
 
 @router.get("/preset-sources", response_model=list[PresetSourceOut])

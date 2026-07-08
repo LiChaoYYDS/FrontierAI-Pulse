@@ -8,9 +8,9 @@ class Settings(BaseSettings):
     # LLM 配置 — 优先使用 DeepSeek，也可切换到 OpenAI
     # ⚠️ 敏感信息请勿硬编码，应在项目根目录的 .env 文件中配置（已加入 .gitignore）
     # 可用模型：deepseek-chat（V3，性价比高）/ deepseek-reasoner（R1，深度推理）
-    DEEPSEEK_API_KEY: str = ""
+    DEEPSEEK_API_KEY: str = "sk-96f2db99245e4bf9aa5d140bfdbb02df"
     DEEPSEEK_BASE_URL: str = "https://api.deepseek.com"
-    DEEPSEEK_MODEL: str = "deepseek-chat"
+    DEEPSEEK_MODEL: str = "deepseek-v4-pro"
 
     OPENAI_API_KEY: str = ""
     OPENAI_BASE_URL: str = "https://api.openai.com/v1"
@@ -30,6 +30,9 @@ class Settings(BaseSettings):
     EMBEDDING_BASE_URL: str = "https://api.openai.com/v1"
     EMBEDDING_MODEL: str = "text-embedding-3-small"
     EMBEDDING_DIM: int = 512             # bge-small-zh-v1.5 输出 512 维
+
+    # Git 工具配置
+    GIT_CMD_PATH: str = ""  # git 可执行文件路径，留空则自动从 PATH 查找
 
 
 settings = Settings()

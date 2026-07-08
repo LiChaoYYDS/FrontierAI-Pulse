@@ -3,7 +3,8 @@ import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMessage } from 'naive-ui'
 import * as api from '@/api'
-import type { KnowledgeNode, AskResponse, EmbedStatus } from '@/api'
+import type { KnowledgeNode } from '@/types/knowledge'
+import type { AskResponse, EmbedStatus, ChatMsg } from '@/types/rag'
 import type { Article } from '@/types/article'
 
 const router = useRouter()
@@ -12,14 +13,6 @@ const message = useMessage()
 const activeTab = ref<'chat' | 'browser'>('chat')
 
 // ── RAG 对话 ───────────────────────────────────────────────────────────────────
-interface ChatMsg {
-  role: 'user' | 'assistant'
-  content: string
-  layer?: string
-  layer_desc?: string
-  sources?: Article[]
-}
-
 const messages = ref<ChatMsg[]>([{
   role: 'assistant',
   content: '你好！我是你的个人知识助手（混合检索版）。\n\n你可以问我：\n• 我收藏过哪些 RAG 相关的文章？\n• 最近 AI Agent 有什么进展？\n• Transformer 是什么技术？',
