@@ -8,7 +8,7 @@ const route = useRoute()
 const themeStore = useThemeStore()
 
 const navItems = [
-  { label: '简报',   key: '/brief',     emoji: '📅' },
+  { label: '周报',   key: '/brief',     emoji: '📊' },
   { label: '资讯',   key: '/articles',  emoji: '📰' },
   { label: '搜索',   key: '/search',    emoji: '🔍' },
   { label: '知识库', key: '/knowledge', emoji: '🧠' },

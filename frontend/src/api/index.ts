@@ -68,7 +68,7 @@ export const getDashboardSummary = () =>
   client.get<DashboardSummary>('/dashboard/summary').then(r => r.data)
 
 export const getWeeklyReport = () =>
-  client.get<{ content: string }>('/dashboard/weekly-report').then(r => r.data)
+  client.get<{ content: string }>('/dashboard/weekly-report', { timeout: 60000 }).then(r => r.data)
 
 // ── Search ────────────────────────────────────────────────────────────────────
 export interface SearchParams {
