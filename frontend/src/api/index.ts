@@ -117,5 +117,15 @@ export const startClone = (git_url: string, username = '', token = '') =>
 export const getCloneStatus = (taskId: string) =>
   client.get<CloneTask>(`/tools/clone/${taskId}`).then(r => r.data)
 
+// ── History: 浏览历史 ─────────────────────────────────────────────────────────
+export const getHistory = (params: { page?: number; page_size?: number; q?: string }) =>
+  client.get<import('@/types/article').ArticleResponse>('/history', { params }).then(r => r.data)
+
+export const deleteHistoryItem = (articleId: number) =>
+  client.delete(`/history/${articleId}`)
+
+export const clearAllHistory = () =>
+  client.delete('/history/all')
+
 // ── 重新导出类型（供其他模块直接从 @/api 导入时向后兼容） ────────────────────
 export type { DashboardSummary, KnowledgeNode, KnowledgeEdge, KnowledgeGraph, AskResponse, EmbedStatus, CloneTask }

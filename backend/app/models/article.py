@@ -51,3 +51,7 @@ class Article(Base):
     updated_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.now()
     )
+    read_at: Mapped[datetime | None] = mapped_column(
+        TIMESTAMP(timezone=True), nullable=True,
+        comment="首次标记已读的时间，用于浏览历史记录"
+    )

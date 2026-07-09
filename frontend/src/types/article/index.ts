@@ -17,6 +17,7 @@ export interface Article {
   insight: string | null
   process_status: string | null
   created_at: string | null
+  read_at: string | null
 }
 
 export interface ArticleParams {
@@ -28,6 +29,8 @@ export interface ArticleParams {
   is_favorite?: boolean
   is_liked?: boolean
   sort_by?: 'time' | 'score'
+  source_type?: string         // 仅返回该 source_type（如 'github'）
+  exclude_source_type?: string // 排除该 source_type（如 'github'）
 }
 
 export interface ArticleResponse {

@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.deps import get_db
 from app.models.article import Article
+from app.models.source import Source
 from app.schemas.article import ArticleResponse, ArticlePage, ArticleUpdate
 
 router = APIRouter(prefix="/api/articles", tags=["articles"])
@@ -22,6 +23,8 @@ async def get_articles(
         is_favorite: bool | None = Query(None),
         is_liked: bool | None = Query(None),
         sort_by: str = Query("score", pattern="^(time|score)$"),
+        source_type: str | None = Query(None, description="仅返回该来源类型（如 github）"),
+        exclude_source_type: str | None = Query(None, description="排除指定来源类型（如 github）"),
         db: AsyncSession = Depends(get_db)
 ):
     """
@@ -30,6 +33,8 @@ async def get_articles(
     - source_id: 按来源过滤
     - is_read / is_favorite / is_liked: 按阅读/收藏/点赞状态过滤
     - sort_by: time=按发布时间降序，score=按兴趣匹配度降序
+    - source_type: 仅返回指定 source_type（rss/arxiv/website/github）
+    - exclude_source_type: 排除指定 source_type
     """
     order = Article.importance_score.desc() if sort_by == "score" else Article.published_at.desc()
     stmt = select(Article).order_by(order)
@@ -50,6 +55,21 @@ async def get_articles(
     if is_liked is not None:
         stmt = stmt.where(Article.is_liked == is_liked)
         count_stmt = count_stmt.where(Article.is_liked == is_liked)
+    if source_type == 'github':
+        github_ids = select(Source.id).where(Source.url.like('%github.com%')).scalar_subquery()
+        stmt       = stmt.where(Article.source_id.in_(github_ids))
+        count_stmt = count_stmt.where(Article.source_id.in_(github_ids))
+    elif source_type:
+        stmt       = stmt.where(Article.source_type == source_type)
+        count_stmt = count_stmt.where(Article.source_type == source_type)
+
+    if exclude_source_type == 'github':
+        github_ids = select(Source.id).where(Source.url.like('%github.com%')).scalar_subquery()
+        stmt       = stmt.where(Article.source_id.notin_(github_ids))
+        count_stmt = count_stmt.where(Article.source_id.notin_(github_ids))
+    elif exclude_source_type:
+        stmt       = stmt.where(Article.source_type != exclude_source_type)
+        count_stmt = count_stmt.where(Article.source_type != exclude_source_type)
 
     total = (await db.execute(count_stmt)).scalar() or 0
     stmt = stmt.offset((page - 1) * page_size).limit(page_size)
@@ -75,16 +95,25 @@ async def get_article(article_id: int, db: AsyncSession = Depends(get_db)):
 async def update_article(article_id: int, body: ArticleUpdate, db: AsyncSession = Depends(get_db)):
     """
     更新文章状态或笔记（只更新传入的字段）
-    - is_read: 标记已读/未读
+    - is_read: 标记已读/未读（首次标记已读时同步写入 read_at）
     - is_favorite: 收藏/取消收藏
     - is_liked: 点赞/取消点赞
     - notes: 保存个人笔记
     """
+    from datetime import datetime, timezone
     article = await db.get(Article, article_id)
     if not article:
         raise HTTPException(status_code=404, detail="文章不存在")
+
     for field, value in body.model_dump(exclude_unset=True).items():
         setattr(article, field, value)
+
+    # 首次标记已读时写入 read_at；取消已读时清空 read_at
+    if body.is_read is True and article.read_at is None:
+        article.read_at = datetime.now(timezone.utc)
+    elif body.is_read is False:
+        article.read_at = None
+
     await db.commit()
     return ArticleResponse.model_validate(article)
 

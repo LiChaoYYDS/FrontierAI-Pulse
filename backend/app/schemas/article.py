@@ -22,6 +22,7 @@ class ArticleResponse(BaseModel):
     insight: str | None = None
     process_status: str | None = "pending"
     created_at: datetime | None = None
+    read_at: datetime | None = None
 
     model_config = {"from_attributes": True}
 

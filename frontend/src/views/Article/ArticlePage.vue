@@ -10,7 +10,7 @@ const router = useRouter()
 const selectedTags = ref<string[]>([])
 const selectedSourceId = ref<number | null>(null)
 const showUnreadOnly = ref(false)
-const sortBy = ref<'time' | 'score'>('score')
+const sortBy = ref<'time' | 'score' | 'github'>('score')
 const page = ref(1)
 const pageSize = ref(10)
 
@@ -46,6 +46,59 @@ async function onLikeShow(show: boolean) {
   }
 }
 
+// ── 历史记录浮动面板 ───────────────────────────────────────────────────────────
+const historyItems   = ref<Article[]>([])
+const historyLoading = ref(false)
+const historySearch  = ref('')
+
+async function onHistoryShow(show: boolean) {
+  if (show) {
+    historyLoading.value = true
+    historySearch.value  = ''
+    try {
+      const res = await api.getHistory({ page: 1, page_size: 100 })
+      historyItems.value = (res as any).items ?? []
+    } catch {
+      historyItems.value = []
+    } finally {
+      historyLoading.value = false
+    }
+  }
+}
+
+async function handleDeleteHistory(id: number) {
+  await api.deleteHistoryItem(id)
+  historyItems.value = historyItems.value.filter(a => a.id !== id)
+}
+
+/** 按关键词过滤后按日期分组，生成 { label, items } 列表 */
+const groupedHistory = computed(() => {
+  const q = historySearch.value.trim().toLowerCase()
+  const filtered = q
+    ? historyItems.value.filter(a => a.title.toLowerCase().includes(q))
+    : historyItems.value
+
+  const map = new Map<string, { label: string; items: Article[] }>()
+  const today     = new Date()
+  const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1)
+  const todayStr  = today.toDateString()
+  const yestStr   = yesterday.toDateString()
+
+  for (const a of filtered) {
+    const d   = new Date(a.read_at ?? a.created_at ?? '')
+    const key = d.toDateString()
+    if (!map.has(key)) {
+      let label: string
+      if (key === todayStr)     label = '今天'
+      else if (key === yestStr) label = '昨天'
+      else label = `${d.getMonth() + 1}月${d.getDate()}日（${'日一二三四五六'[d.getDay()]}）`
+      map.set(key, { label, items: [] })
+    }
+    map.get(key)!.items.push(a)
+  }
+  return [...map.values()]
+})
+
 // ── 过滤/排序 ──────────────────────────────────────────────────────────────────
 const sourceOptions = computed(() => {
   const seen = new Set<string>()
@@ -67,20 +120,25 @@ const sourceNameMap = computed(() => {
 })
 
 async function loadArticles() {
+  const isGithub = sortBy.value === 'github'
   const params: ArticleParams = {
-    page: page.value,
+    page:      page.value,
     page_size: pageSize.value,
-    tags: selectedTags.value.length > 0 ? selectedTags.value : undefined,
+    tags:      selectedTags.value.length > 0 ? selectedTags.value : undefined,
     source_id: selectedSourceId.value ?? undefined,
-    is_read: showUnreadOnly.value ? false : undefined,
-    sort_by: sortBy.value,
+    is_read:   showUnreadOnly.value ? false : undefined,
+    sort_by:   isGithub ? 'time' : sortBy.value,
+    source_type:         isGithub ? 'github'  : undefined,
+    exclude_source_type: isGithub ? undefined : 'github',
   }
   await articleStore.fetchArticles(params)
 }
 
 function onFilterChange() { page.value = 1; loadArticles() }
 function onPageChange(p: number) { page.value = p; loadArticles() }
-function onSortChange(val: 'time' | 'score') { sortBy.value = val; page.value = 1; loadArticles() }
+function onTabChange(val: 'time' | 'score' | 'github') {
+  sortBy.value = val; page.value = 1; loadArticles()
+}
 
 function getTagColor(tag: string) {
   const colors = ['#18a058', '#2080f0', '#f0a020', '#d03050', '#8058f0']
@@ -195,6 +253,46 @@ onMounted(async () => {
             </n-spin>
           </div>
         </n-popover>
+
+        <!-- 历史记录浮动面板 -->
+        <n-popover trigger="click" placement="bottom-end" :width="400" @update:show="onHistoryShow">
+          <template #trigger>
+            <n-button size="small" secondary>
+              📖 历史{{ historyItems.length > 0 ? ` (${historyItems.length})` : '' }}
+            </n-button>
+          </template>
+          <div class="pop-panel pop-history">
+            <div class="pop-title-bar">📖 浏览历史</div>
+            <!-- 搜索栏 -->
+            <n-input
+              v-model:value="historySearch"
+              placeholder="搜索历史记录…"
+              clearable
+              size="small"
+              style="margin-bottom: 8px"
+            >
+              <template #prefix><span style="font-size: 12px">🔍</span></template>
+            </n-input>
+            <n-spin :show="historyLoading" style="min-height: 60px">
+              <n-empty v-if="!historyLoading && groupedHistory.length === 0"
+                description="暂无浏览历史" style="padding: 16px 0" />
+              <div v-else class="history-scroll">
+                <div v-for="group in groupedHistory" :key="group.label" class="history-group">
+                  <div class="history-date-label">{{ group.label }}</div>
+                  <div v-for="a in group.items" :key="a.id" class="history-item">
+                    <span class="history-time">
+                      {{ a.read_at ? new Date(a.read_at).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }) : '' }}
+                    </span>
+                    <span class="history-item-title" @click="router.push(`/articles/${a.id}`)">
+                      {{ a.title }}
+                    </span>
+                    <span class="history-del" @click.stop="handleDeleteHistory(a.id)">✕</span>
+                  </div>
+                </div>
+              </div>
+            </n-spin>
+          </div>
+        </n-popover>
       </div>
     </div>
 
@@ -208,12 +306,20 @@ onMounted(async () => {
         <n-select v-model:value="selectedTags" :options="tagOptions" multiple clearable filterable
           placeholder="选择标签" style="width: 180px" @update:value="onFilterChange()" />
         <n-checkbox v-model:checked="showUnreadOnly" @update:checked="onFilterChange">仅未读</n-checkbox>
-        <div style="margin-left: auto">
-          <n-radio-group :value="sortBy" @update:value="onSortChange" size="small">
-            <n-radio-button value="time">按时间</n-radio-button>
-            <n-radio-button value="score">按相关度</n-radio-button>
-          </n-radio-group>
-        </div>
+        <div style="margin-left: auto; display: flex; gap: 4px">
+            <n-button
+              v-for="tab in ([
+                { val: 'score',  label: '🎯 按相关度' },
+                { val: 'time',   label: '📰 按时间'   },
+                { val: 'github', label: '🐙 按项目'   },
+              ] as const)"
+              :key="tab.val"
+              size="small"
+              :type="sortBy === tab.val ? 'primary' : 'default'"
+              :secondary="sortBy !== tab.val"
+              @click="onTabChange(tab.val)"
+            >{{ tab.label }}</n-button>
+          </div>
       </div>
     </n-card>
 
@@ -390,6 +496,38 @@ onMounted(async () => {
   transition: background 0.1s; border-bottom: 1px solid var(--border);
 }
 .pop-item:last-child { border-bottom: none; }
+
+/* ── 历史记录面板 ──────────────────────────────────────────────────── */
+.pop-history       { padding: 4px 0; }
+.history-scroll    { max-height: 420px; overflow-y: auto; padding-right: 2px; }
+.history-group     { margin-bottom: 12px; }
+.history-date-label {
+  font-size: 11px; font-weight: 600; color: var(--text-3);
+  letter-spacing: 0.04em; margin-bottom: 4px; padding-left: 2px;
+}
+.history-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 4px; border-radius: 5px;
+  transition: background 0.1s;
+}
+.history-item:hover           { background: var(--surface-2); }
+.history-item:hover .history-del { opacity: 1; }
+.history-time {
+  font-size: 11px; color: var(--text-3); width: 38px;
+  flex-shrink: 0; font-variant-numeric: tabular-nums;
+}
+.history-item-title {
+  flex: 1; min-width: 0; font-size: 13px; color: var(--text-1);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  cursor: pointer; transition: color 0.1s;
+}
+.history-item-title:hover { color: var(--accent); }
+.history-del {
+  font-size: 11px; color: var(--text-3); cursor: pointer;
+  opacity: 0; transition: opacity 0.15s; flex-shrink: 0;
+  padding: 2px 4px; border-radius: 3px;
+}
+.history-del:hover { color: var(--error, #d03050); background: rgba(208,48,80,0.08); }
 .pop-item:hover { background: var(--surface-2); }
 .pop-item-title { font-size: 13px; line-height: 1.4; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-1); }
 .pop-item-meta { font-size: 11px; color: var(--text-3); margin-top: 2px; }

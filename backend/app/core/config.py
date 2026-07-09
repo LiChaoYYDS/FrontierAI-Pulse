@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     # LLM 配置 — 优先使用 DeepSeek，也可切换到 OpenAI
     # ⚠️ 敏感信息请勿硬编码，应在项目根目录的 .env 文件中配置（已加入 .gitignore）
     # 可用模型：deepseek-chat（V3，性价比高）/ deepseek-reasoner（R1，深度推理）
-    DEEPSEEK_API_KEY: str = "sk-96f2db99245e4bf9aa5d140bfdbb02df"
+    DEEPSEEK_API_KEY: str = "sk-e56f0779e2af45929d00ed6409f6a89d"
     DEEPSEEK_BASE_URL: str = "https://api.deepseek.com"
     DEEPSEEK_MODEL: str = "deepseek-v4-pro"
 

@@ -25,6 +25,7 @@ from app.api.endpoints.search import router as search_router
 from app.api.endpoints.knowledge import router as knowledge_router
 from app.api.endpoints.rag import router as rag_router
 from app.api.endpoints.tools import router as tools_router
+from app.api.endpoints.history import router as history_router
 
 logger = logging.getLogger("uvicorn")
 
@@ -76,6 +77,7 @@ app.include_router(search_router)
 app.include_router(knowledge_router)
 app.include_router(rag_router)
 app.include_router(tools_router)
+app.include_router(history_router)
 
 
 @app.get("/")
