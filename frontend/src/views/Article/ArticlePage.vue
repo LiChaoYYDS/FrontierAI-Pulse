@@ -50,6 +50,7 @@ async function onLikeShow(show: boolean) {
 const sourceOptions = computed(() => {
   const seen = new Set<string>()
   return sourceStore.sources
+    .filter(s => s.is_active)  // 只展示用户在来源页中已启用的来源
     .filter(s => { if (seen.has(s.name)) return false; seen.add(s.name); return true })
     .map(s => ({ label: s.name, value: s.id }))
 })

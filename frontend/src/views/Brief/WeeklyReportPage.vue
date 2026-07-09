@@ -55,7 +55,7 @@ const dailyReadsOption = computed(() => {
   const d = report.data
   if (!d?.daily_reads?.length) return {}
   return {
-    tooltip: { trigger: 'axis' },
+    tooltip: { trigger: 'axis', formatter: (p: any) => `${p[0].name}<br/>已读 ${p[0].value} 篇` },
     grid:    { left: 40, right: 16, top: 16, bottom: 30 },
     xAxis: {
       type: 'category',
@@ -210,7 +210,7 @@ function downloadMd() {
           </n-card>
 
           <!-- 每日阅读柱状图 -->
-          <n-card title="📅 阅读趋势" size="small" class="card-flex">
+          <n-card title="📅 阅读趋势（本周已读）" size="small" class="card-flex">
             <VChart v-if="dailyReadsOption.series" :option="dailyReadsOption" style="height:140px" autoresize />
             <n-empty v-else description="暂无数据" style="height:140px;display:flex;align-items:center;justify-content:center" />
           </n-card>

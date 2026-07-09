@@ -1,6 +1,6 @@
 import client from './client.ts'
 import type { Article, ArticleParams, ArticleResponse, ArticleUpdate } from '@/types/article'
-import type { SourceItem, PresetSource } from '@/types/source'
+import type { SourceItem, CustomSourceCreate } from '@/types/source'
 import type { DashboardSummary } from '@/types/dashboard'
 import type { KnowledgeNode, KnowledgeEdge, KnowledgeGraph } from '@/types/knowledge'
 import type { AskResponse, EmbedStatus } from '@/types/rag'
@@ -39,17 +39,16 @@ export const getAllTags = () =>
 export const fetchSource = (sourceId: number) =>
   client.post<{ source_id: number; new_articles: number }>(`/sources/${sourceId}/fetch`).then(r => r.data)
 
+export const addCustomSource = (data: CustomSourceCreate) =>
+  client.post<SourceItem>('/sources/custom', data).then(r => r.data)
+
+export const toggleSourceActive = (sourceId: number, is_active: boolean) =>
+  client.patch<SourceItem>(`/sources/${sourceId}`, { is_active }).then(r => r.data)
+
+export const deleteSource = (sourceId: number) =>
+  client.delete(`/sources/${sourceId}`)
+
 // ── User Preferences ──────────────────────────────────────────────────────────
-export const getPresetSources = () =>
-  client.get<PresetSource[]>('/user/preset-sources').then(r => r.data)
-
-export const getUserSources = () =>
-  client.get<{ enabled_keys: string[] }>('/user/sources').then(r => r.data)
-
-export const updateUserSources = (enabled_keys: string[]) =>
-  client.put<{ enabled_keys: string[]; synced: number }>('/user/sources', { enabled_keys }).then(r => r.data)
-
-// ── User Interests ────────────────────────────────────────────────────────────
 export const getPresetInterests = () =>
   client.get<{ interests: string[] }>('/user/interests/preset').then(r => r.data)
 

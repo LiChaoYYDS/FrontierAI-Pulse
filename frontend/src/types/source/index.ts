@@ -16,3 +16,10 @@ export interface PresetSource {
   description: string
   category: string
 }
+
+export interface CustomSourceCreate {
+  name: string
+  url: string
+  type: string
+  description?: string
+}

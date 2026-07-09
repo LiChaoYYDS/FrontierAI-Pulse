@@ -71,15 +71,17 @@ async def _build_overview(db: AsyncSession, since: datetime) -> WeeklyOverview:
     )
     total = total_res.scalar_one()
 
+    # is_read 按 updated_at 筛选：文章被标记已读时 updated_at 会更新，
+    # 与 _build_daily_reads 保持一致，避免两处数据对不上
     read_res = await db.execute(
         select(func.count(Article.id))
-        .where(Article.created_at >= since, Article.is_read == True)
+        .where(Article.updated_at >= since, Article.is_read == True)
     )
     read_count = read_res.scalar_one()
 
-    # 取已读文章估算阅读时长
+    # 取已读文章估算阅读时长（同样用 updated_at 窗口）
     read_articles_res = await db.execute(
-        select(Article).where(Article.created_at >= since, Article.is_read == True)
+        select(Article).where(Article.updated_at >= since, Article.is_read == True)
     )
     read_articles = read_articles_res.scalars().all()
     read_minutes = sum(_read_minutes(a) for a in read_articles)
@@ -215,13 +217,18 @@ async def _build_insights(db: AsyncSession, since: datetime) -> list[InsightItem
 
 
 async def _build_daily_reads(db: AsyncSession, since: datetime) -> list[DailyCount]:
-    """统计最近7天每天新增文章数。"""
+    """
+    统计最近7天每天已读文章数。
+    以 updated_at 作为"阅读时间"的近似依据（标记已读时会更新 updated_at）。
+    把筛选出的每一条记录的 updated_at 时间戳，统一转为 UTC 时区，然后格式化为 MM-DD（月-日） 的字符串，命名为 day。
+    """
     result = await db.execute(
         text("""
-            SELECT TO_CHAR(created_at AT TIME ZONE 'UTC', 'MM-DD') AS day,
+            SELECT TO_CHAR(updated_at AT TIME ZONE 'UTC', 'MM-DD') AS day,
                    COUNT(*) AS cnt
             FROM articles
-            WHERE created_at >= :since
+            WHERE is_read = TRUE
+              AND updated_at >= :since
             GROUP BY day
             ORDER BY day
         """),
@@ -316,9 +323,11 @@ async def _build_ai_content(
     except Exception as e:
         logger.warning("[WeeklyReport] LLM 调用失败，使用兜底内容: %s", e)
         data = {}
-
+    #趋势描述
     trend_summaries: dict[str, str] = data.get("trend_summaries", {})
+    #行动建议
     raw_actions: list[dict] = data.get("action_items", [])
+    #下周关注
     next_focus: list[str] = data.get("next_week_focus", [])
 
     # 组装 TrendItem 列表
@@ -334,6 +343,7 @@ async def _build_ai_content(
     ]
 
     # 组装 ActionItem 列表（最多3条，兜底默认）
+    # 学习建议 & 行动清单
     default_actions = [
         ActionItem(
             title="深度阅读一篇",
