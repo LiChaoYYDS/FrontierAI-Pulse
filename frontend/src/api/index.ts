@@ -64,8 +64,8 @@ export const getTodayBrief = () =>
   client.get<{ content: string }>('/brief/today', { timeout: 60000 }).then(r => r.data)
 
 // ── Dashboard ─────────────────────────────────────────────────────────────────
-export const getDashboardSummary = () =>
-  client.get<DashboardSummary>('/dashboard/summary').then(r => r.data)
+export const getDashboardSummary = (days = 30) =>
+  client.get<DashboardData>('/dashboard/summary', { params: { days } }).then(r => r.data)
 
 export const getWeeklyReport = () =>
   client.get<WeeklyReportData>('/dashboard/weekly-report', { timeout: 60000 }).then(r => r.data)

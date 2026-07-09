@@ -168,7 +168,7 @@ onMounted(() => sourceStore.loadSources())
 </template>
 
 <style scoped>
-.source-page  { max-width: 800px; }
+.source-page  { max-width: 800px; margin: 0 auto; }
 .page-header  { display: flex; justify-content: space-between; align-items: flex-start; }
 .source-list  { display: flex; flex-direction: column; gap: 2px; }
 .source-row {

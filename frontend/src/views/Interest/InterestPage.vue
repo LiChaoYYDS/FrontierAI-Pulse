@@ -110,6 +110,6 @@ async function doSave(interests: string[]) {
 </template>
 
 <style scoped>
-.interest-page { max-width: 800px; }
+.interest-page { max-width: 800px; margin: 0 auto; }
 .page-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
 </style>
