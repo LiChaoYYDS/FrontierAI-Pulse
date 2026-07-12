@@ -127,7 +127,7 @@ async function loadArticles() {
     tags:      selectedTags.value.length > 0 ? selectedTags.value : undefined,
     source_id: selectedSourceId.value ?? undefined,
     is_read:   showUnreadOnly.value ? false : undefined,
-    sort_by:   isGithub ? 'time' : sortBy.value,
+    sort_by:   isGithub ? 'time' : (sortBy.value as 'time' | 'score'),
     source_type:         isGithub ? 'github'  : undefined,
     exclude_source_type: isGithub ? undefined : 'github',
   }
@@ -179,14 +179,6 @@ async function toggleFavorite(id: number, current: boolean) {
 async function toggleLike(id: number, current: boolean) {
   await articleStore.updateArticle(id, { is_liked: !current })
   likes.value = []
-}
-
-function toggleTagFilter(tag: string) {
-  const idx = selectedTags.value.indexOf(tag)
-  if (idx >= 0) selectedTags.value.splice(idx, 1)
-  else selectedTags.value.push(tag)
-  page.value = 1
-  loadArticles()
 }
 
 onMounted(async () => {

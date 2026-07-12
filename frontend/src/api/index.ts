@@ -1,7 +1,7 @@
 import client from './client.ts'
 import type { Article, ArticleParams, ArticleResponse, ArticleUpdate } from '@/types/article'
 import type { SourceItem, CustomSourceCreate } from '@/types/source'
-import type { DashboardSummary } from '@/types/dashboard'
+import type { DashboardData } from '@/types/dashboard'
 import type { KnowledgeNode, KnowledgeEdge, KnowledgeGraph } from '@/types/knowledge'
 import type { AskResponse, EmbedStatus } from '@/types/rag'
 import type { CloneTask } from '@/types/tools'
@@ -128,4 +128,4 @@ export const clearAllHistory = () =>
   client.delete('/history/all')
 
 // ── 重新导出类型（供其他模块直接从 @/api 导入时向后兼容） ────────────────────
-export type { DashboardSummary, KnowledgeNode, KnowledgeEdge, KnowledgeGraph, AskResponse, EmbedStatus, CloneTask }
+export type { DashboardData, KnowledgeNode, KnowledgeEdge, KnowledgeGraph, AskResponse, EmbedStatus, CloneTask }

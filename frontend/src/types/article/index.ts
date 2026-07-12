@@ -17,7 +17,7 @@ export interface Article {
   insight: string | null
   process_status: string | null
   created_at: string | null
-  read_at: string | null
+  read_at?: string | null
 }
 
 export interface ArticleParams {

@@ -1,0 +1,46 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: tech_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ChaoNi123@
+      POSTGRES_DB: tech_news
+    volumes:
+      - pgdata:/var/lib/postgresql/data #将数据库数据永久保存在服务器硬盘上，如果不挂载到磁盘，数据就会丢失
+    ports:
+      - "5433:5432"
+    healthcheck: # ← 补上这段
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d tech_news" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: tech_backend
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:ChaoNi123%40@db:5432/tech_news
+    depends_on: #等待所依赖的服务启动就绪，至于服务是否正常访问并不关心，“后启动的先停，先启动的后停。”
+      db: #进行健康检查，确保数据库能正常查询数据，否则服务启动失败
+          condition: service_healthy
+    ports:
+      - "8000:8000"
+    restart:  unless-stopped
+
+  frontend:
+      build:
+          context: .
+          dockerfile: Dockerfile.frontend
+      container_name: tech_frontend
+      ports:
+        - "80:80"
+      depends_on:
+        -  backend
+      restart: unless-stopped
+volumes: #在服务器上永久划出一块磁盘空间，用于保存数据库数据
+  pgdata:

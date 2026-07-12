@@ -4,7 +4,6 @@ import { useRoute, useRouter } from 'vue-router'
 import { useMessage } from 'naive-ui'
 import * as api from '@/api'
 import type { Article } from '@/types/article'
-import type { CloneTask } from '@/api'
 
 const route = useRoute()
 const router = useRouter()

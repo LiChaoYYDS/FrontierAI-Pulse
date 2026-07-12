@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMessage } from 'naive-ui'
 import * as api from '@/api'
-import type { Article, ArticleResponse } from '@/types/article'
+import type { Article } from '@/types/article'
 
 const router  = useRouter()
 const message = useMessage()
@@ -11,7 +11,6 @@ const message = useMessage()
 const articles   = ref<Article[]>([])
 const total      = ref(0)
 const loading    = ref(false)
-const searching  = ref(false)
 const page       = ref(1)
 const pageSize   = ref(20)
 const searchText = ref('')
@@ -144,7 +143,7 @@ onMounted(loadHistory)
           <div class="date-label">{{ group.label }}</div>
           <n-card :bordered="true" size="small" style="margin-bottom: 4px">
             <div v-for="article in group.items" :key="article.id" class="history-row">
-              <span class="read-time">{{ formatTime(article.read_at) }}</span>
+              <span class="read-time">{{ formatTime(article.read_at ?? null) }}</span>
               <span class="history-title" @click="router.push(`/articles/${article.id}`)">
                 {{ article.title }}
               </span>

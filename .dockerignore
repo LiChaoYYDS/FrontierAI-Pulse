@@ -1,0 +1,28 @@
+# Python
+.venv/
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+*.egg-info/
+
+# Node
+frontend/node_modules/
+frontend/dist/
+
+# 敏感信息（通过 env_file 注入，不打进镜像）
+.env
+
+# 版本控制
+.git/
+.gitignore
+
+# 开发工具
+.idea/
+.vscode/
+.codegraph/
+.reasonix/
+
+# 日志和诊断文件
+uvicorn.log
+uvicorn.err
+check_*.py

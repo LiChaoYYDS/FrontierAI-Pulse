@@ -86,6 +86,12 @@ async function doSearch() {
 
 function onFilterChange() { page.value = 1; doSearch() }
 function onPageChange(p: number) { page.value = p; doSearch() }
+function selectSuggestion(v: string) {
+  selectedTags.value.push(v)
+  q.value = ''
+  suggestions.value = []
+  onFilterChange()
+}
 
 // 关键词高亮：在文本中将 q 包裹 <mark>
 function highlight(text: string | null, keyword: string): string {
@@ -118,7 +124,7 @@ onMounted(() => sourceStore.loadSources())
         placeholder="搜索文章标题、摘要、内容..."
         clearable
         style="flex: 1"
-        @select="(v: string) => { selectedTags.value.push(v); q = ''; suggestions.value = []; onFilterChange() }"
+        @select="selectSuggestion"
       />
     </n-input-group>
 
