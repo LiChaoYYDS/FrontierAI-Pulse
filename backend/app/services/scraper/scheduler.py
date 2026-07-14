@@ -28,6 +28,8 @@ scheduler = AsyncIOScheduler()
 _FETCH_CONCURRENCY = 5
 # 单个来源的最长等待时间（秒），超时后跳过，不阻塞其他来源
 _SOURCE_TIMEOUT = 60
+# 防止后台 Embedding asyncio.Task 被 GC 回收的强引用集合
+_background_embed_tasks: set = set()
 
 
 def _make_scraper(source: Source):
@@ -57,6 +59,7 @@ def _make_scraper(source: Source):
 async def fetch_single_source(source_id: int) -> int:
     """
     抓取单个来源，返回新增文章数。可被 API 端点直接调用。
+    有新文章时自动在后台触发 Embedding 生成，不阻塞接口返回。
 
     Args:
         source_id: 来源 ID
@@ -78,6 +81,19 @@ async def fetch_single_source(source_id: int) -> int:
         await db.commit()
 
     logger.info("[Scraper] %s 新增 %d 篇", source.name, count)
+
+    # 有新文章时，后台自动触发 Embedding 生成
+    # 局部导入避免循环依赖；任务引用存入集合防止被 GC 回收
+    if count > 0:
+        from app.services.rag.background_jobs import embed_job, run_embed_job
+        if not embed_job["running"]:
+            task = asyncio.create_task(run_embed_job())
+            _background_embed_tasks.add(task)
+            task.add_done_callback(_background_embed_tasks.discard)
+            logger.info("[Scraper] 已触发后台 Embedding 任务（%d 篇新文章待向量化）", count)
+        else:
+            logger.info("[Scraper] Embedding 任务已在运行中，本次新文章将在当前批次处理")
+
     return count
 
 
